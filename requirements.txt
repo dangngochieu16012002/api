@@ -1,6 +1,6 @@
 Flask
 Flask-CORS
-face_recognition
 opencv-python
 numpy
 mysql-connector-python
+deepface

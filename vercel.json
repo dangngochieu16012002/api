@@ -1,9 +1,10 @@
 {
     "version": 2,
     "builds": [
-        { "src": "face_recognition_api.py", "use": "@vercel/python" }
+      { "src": "Dockerfile", "use": "@vercel/docker" }
     ],
     "routes": [
-        { "src": "/(.*)", "dest": "face_recognition_api.py" }
+      { "src": "/(.*)", "dest": "/" }
     ]
-}
+  }
+  

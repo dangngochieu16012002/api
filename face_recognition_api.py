@@ -7,7 +7,7 @@ import base64
 import os
 import mysql.connector
 from datetime import datetime
-
+from deepface import DeepFace
 app = Flask(__name__)
 CORS(app)
 
@@ -65,6 +65,7 @@ def home():
     return jsonify({"message": "API đang hoạt động!"}), 200
 
 # Route API: Nhận diện khuôn mặt
+# Thay thế logic nhận diện trong route /recognize
 @app.route('/recognize', methods=['POST'])
 def recognize():
     try:
@@ -75,18 +76,12 @@ def recognize():
         np_img = np.frombuffer(img_data, np.uint8)
         img = cv2.imdecode(np_img, cv2.IMREAD_COLOR)
 
-        face_locations = face_recognition.face_locations(img)
-        face_encodings = face_recognition.face_encodings(img, face_locations)
-
-        for face_encoding in face_encodings:
-            matches = face_recognition.compare_faces(employee_faces, face_encoding)
-            face_distances = face_recognition.face_distance(employee_faces, face_encoding)
-            if matches and len(face_distances) > 0:
-                best_match_index = np.argmin(face_distances)
-                if matches[best_match_index]:
-                    employee_name = employee_names[best_match_index]
-                    log_attendance(employee_name, attendance_type)
-                    return jsonify({"status": "success", "message": f"{employee_name} đã {'chấm công vào' if attendance_type == 'in' else 'chấm công ra'}!"}), 200
+        # Nhận diện bằng DeepFace
+        result = DeepFace.find(img_path=img, db_path=EMPLOYEE_DIR, enforce_detection=False)
+        if len(result) > 0:
+            employee_name = result[0]['identity']
+            log_attendance(employee_name, attendance_type)
+            return jsonify({"status": "success", "message": f"{employee_name} đã {'chấm công vào' if attendance_type == 'in' else 'chấm công ra'}!"}), 200
 
         return jsonify({"status": "fail", "message": "Không tìm thấy khuôn mặt trùng khớp."}), 404
     except Exception as e:
